@@ -1,64 +1,34 @@
 import 'dart:convert';
 import 'package:http/http.dart'as http;
 import 'package:machine_learning_project/Model.dart';
-
-
-
-
-
-
 class ApiModel {
-
-
-  static Future<UserModel> getSources(
-      { required String Brand,
-        required String Model,
-        required String Body,
-        required String Color,
-        required String Fuel,
-        required String Kilometers,
-        required String Engine,
-        required String Transmission,
-        required String Gov,
-        required String Year,
-      }
-      ) async {
-
+  static Future<PredictionModel> getSources(
+      { required String Brand, required String Model, required String Body, required String Color, required String Fuel,
+        required String Kilometers, required String Engine, required String Transmission, required String Gov, required int Year,}
+      )
+     async {
     List<Map<String,dynamic>> requst=[
-    {"Brand": "Hyundai",
-      "Model": "Accent",
-      "Body": "Sedan",
-      "Color": "Blue",
-      "Fuel": "Gasoline",
-      "Kilometers": "40000 to 159999",
-      "Engine": "1.6L",
-      "Transmission": "Automatic",
-      "Gov": "Yes",
-      "Year": 2018}];
-    // call api
-    var uri = Uri.parse('https://monazarea.pythonanywhere.com/predict');
-    var response = await http.post(uri,body:jsonEncode(requst) );
-    print("++++++++++++++++++++++++++++"+jsonEncode(requst));
-    print(response.body);
-    print("***********************************"+jsonDecode(response.body));
-
+    {"Brand": Brand, "Model": Model, "Body": Body, "Color": Color, "Fuel": Fuel, "Kilometers": Kilometers, "Engine": Engine,
+      "Transmission": Transmission, "Gov": Gov, "Year": Year}];
+    final json_data = jsonEncode(requst);
+    final headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    };
     try {
+      var uri = Uri.parse('https://monazarea.pythonanywhere.com/predict');
+      var response = await http.post(uri,body:json_data,headers: headers );
+      print("++++++++++++++++++++++++++++"+jsonEncode(requst));
       var bodyString = response.body;
       // Check if the request was successful (status code 200)
       if (response.statusCode == 200) {
-        // Print the response body (API data)
-        var json = jsonDecode(bodyString);
-        var sourcesResponse = UserModel.fromJson(json);
-        //json['Prediction'] != null ? json['Prediction'].cast<double>() : [];
-        print("***********************************"+sourcesResponse.prediction.length.toString());
-        return sourcesResponse;
-
+        var result = jsonDecode(bodyString);
+        // ... existing code to decode response body ...
+        final prediction = PredictionModel.fromJson(result);
+        return prediction;
       } else {
-        var json = jsonDecode(bodyString);
-        var sourcesResponse = json['Prediction'] != null ? json['Prediction'].cast<double>() : [];
-        // If the request was unsuccessful, print the error message
-        print('Request failed with status: ${response.statusCode}');
-        return sourcesResponse;
+        // Handle error scenario
+        throw Exception('Failed to fetch prediction'); // Or handle differently
       }
 
     } catch (e) {
@@ -66,3 +36,5 @@ class ApiModel {
     }
   }
 }
+
+//
